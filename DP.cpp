@@ -22,11 +22,10 @@ char const* ipAddress[] = {
         "147.97.156.241", "147.97.156.242",
         "147.97.156.243", "147.97.156.244",
         "147.97.156.245"
-    };
+    }; //the machines ip address
     
 void waitFor (unsigned int secs) {
     unsigned int retTime = time(0) + secs; // Get finishing time.
-    //printf("the waiting time is %d \n",retTime);
     while (time(0) < retTime);    // Loop until it arrives.
 }
 
@@ -101,10 +100,9 @@ void* client(void* number)
    {
     if(pthread_mutex_lock(&myFork)!=0) //unsucessful lock
     {
-      // printf("unable to get the lock client \n");
        if(waitingTime>6)
        {
-       waitingTime-=3;
+       waitingTime-=3; //Reduce the waiting time
        }
        waitFor(waitingTime);
     }
@@ -128,16 +126,15 @@ void* client(void* number)
       addrlen = sizeof(server_addr);   // specify the size of server_addr, this is important !!!!!
       nread = recvfrom(sockfd,msg, MESSAGESIZE, 0,
                  (struct sockaddr *) &server_addr, (socklen_t *) &addrlen);
-      //printf("the value from server is %s \n",msg);
       if (nread >0)
        {
-          if(strncmp(msg,"locked",6)==0)
+          if(strncmp(msg,"locked",6)==0) //server successfully locked the resource
           {
-            waitingTime=rand() % (24) + 6;
+            waitingTime=rand() % (24) + 6; //making the waiting time to 24-30 sec again
             printf("\n philosopher %d is eating \n",philosopher);
-            waitFor(rand() % 10 + 1);
-            pthread_mutex_unlock(&myFork);
-            strcpy(msg,  "unlock");  
+            waitFor(rand() % 10 + 1); //Eat for random time
+            pthread_mutex_unlock(&myFork); //unlock resource after eating
+            strcpy(msg,  "unlock");  //send unlock msg to server after eating random time
             retcode = sendto(sockfd, msg, strlen(msg)+1, 0,
                   (struct sockaddr *) &server_addr, sizeof(server_addr));
             if (retcode <= -1)
@@ -146,10 +143,10 @@ void* client(void* number)
           exit(3); 
            }
           }
-          else if(strncmp(msg,"unsec",5)==0)
+          else if(strncmp(msg,"unsec",5)==0) //server unable to get the lock on server
           {
-            waitingTime-=3;
-            pthread_mutex_unlock(&myFork);   
+            waitingTime-=3; //reduce waiting time
+            pthread_mutex_unlock(&myFork); //release the lock on resource
           }
           waitFor(waitingTime);
        }
@@ -209,15 +206,14 @@ void* server(void* number)
        addrlen = sizeof(client_addr);   // need to give it the buffer size for sender's address
        nread = recvfrom(sockfd,msg, MESSAGESIZE, 0,
                   (struct sockaddr *) &client_addr, (socklen_t *) &addrlen);
-       //printf("the value from client is %s \n",msg);
 
        if (nread >0) 
        {
-           if(strncmp(msg,"lock",4)==0)
+           if(strncmp(msg,"lock",4)==0) //client send request to lock the resource
            {
                 if(pthread_mutex_lock(&myFork)!=0) //unsucessful lock
                   {
-                     strcpy(msg,  "unsuc");
+                     strcpy(msg,  "unsuc"); //send unsuccessful lock code to client
                      retcode = sendto(sockfd,msg,strlen(msg)+1,0,
                      (struct sockaddr *) &client_addr, sizeof(client_addr));
                      if (retcode <= -1)
@@ -228,13 +224,13 @@ void* server(void* number)
                      }
                      if(waitingTime>6)
                      {
-                       waitingTime-=3;
+                       waitingTime-=3; //reducing waiting time
                      }
                    waitFor(waitingTime);
                  }
                  else
                  {
-                     strcpy(msg,  "locked");
+                     strcpy(msg,  "locked"); //lock aquired on the resource
                      retcode = sendto(sockfd,msg,strlen(msg)+1,0,
                      (struct sockaddr *) &client_addr, sizeof(client_addr));
                      if (retcode <= -1)
@@ -246,9 +242,9 @@ void* server(void* number)
                  }
                 
            }
-           else if(strncmp(msg,"unlock",6)==0)
+           else if(strncmp(msg,"unlock",6)==0) //clien send a request to unlock the resource
            {
-             pthread_mutex_unlock(&myFork);
+             pthread_mutex_unlock(&myFork); //unlocked resource
            }
        }
            
