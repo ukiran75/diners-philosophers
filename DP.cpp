@@ -261,8 +261,11 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // creating the server and client threads
-    pthread_create(&client_thread, NULL, client,(void *)argv[1]);
+    /* creating the server and client threads
+    >The argument 1 is the number for the machine in which it is running
+    >i.e Philosopher 1 or philosopher 2......
+    */
+    pthread_create(&client_thread, NULL, client,(void *)argv[1]); 
     pthread_create(&server_thread, NULL, server,(void *)argv[1]);
 
     // wait for them to finish
