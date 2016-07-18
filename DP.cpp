@@ -12,7 +12,7 @@
 #include <arpa/inet.h>  //for sockaddr_in, inet_addr()
 #include <errno.h>      //for system error numbers
 
-#define SERVER_PORT_ID  19123
+#define SERVER_PORT_ID  19123 //server port id to communicate with the adjacent client
 
 #define MESSAGESIZE        80
 
@@ -23,17 +23,17 @@ char const* ipAddress[] = {
         "147.97.156.243", "147.97.156.244",
         "147.97.156.245"
     }; //the machines ip address
-    
+//Function for waiting time    
 void waitFor (unsigned int secs) {
     unsigned int retTime = time(0) + secs; // Get finishing time.
     while (time(0) < retTime);    // Loop until it arrives.
 }
 
 
-    
+//the client function    
 void* client(void* number)
 {
-    waitFor(20);
+    waitFor(20);//wait untill all the other servers are running
     int sockfd, retcode, nread, addrlen;
     int server_port_id = SERVER_PORT_ID;
     char const* serv_host_addr="142.97.156.241";
@@ -111,7 +111,7 @@ void* client(void* number)
    // ---------------------------------------------------------
     else
     {
-      strcpy(msg,  "lock");  
+      strcpy(msg,  "lock");    //sending the successful locked signal to the server
       retcode = sendto(sockfd, msg, strlen(msg)+1, 0,
                   (struct sockaddr *) &server_addr, sizeof(server_addr));
       if (retcode <= -1)
@@ -242,7 +242,7 @@ void* server(void* number)
                  }
                 
            }
-           else if(strncmp(msg,"unlock",6)==0) //clien send a request to unlock the resource
+           else if(strncmp(msg,"unlock",6)==0) //client send a request to unlock the resource
            {
              pthread_mutex_unlock(&myFork); //unlocked resource
            }
@@ -254,14 +254,14 @@ void* server(void* number)
 int main(int argc, char *argv[])
 {
     pthread_t client_thread, server_thread;
-    
+    //initiating the mutex (fork/resource)
     if (pthread_mutex_init(&myFork, NULL) != 0)
     {
         printf("\n mutex init failed\n");
         return 1;
     }
 
-    // make threads
+    // creating the server and client threads
     pthread_create(&client_thread, NULL, client,(void *)argv[1]);
     pthread_create(&server_thread, NULL, server,(void *)argv[1]);
 
